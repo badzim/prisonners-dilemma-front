@@ -7,7 +7,7 @@
     <div class="game-content">
       <LoadingScreen v-if="loading" />
       <div v-else>
-        <p v-if="message">message du serveur : {{ message }}</p>
+        <p v-if="message">message du serveur : {{ message }}...</p>
         <!-- Autres éléments du jeu -->
       </div>
     </div>
@@ -41,7 +41,7 @@ export default {
         return;
       }
 
-      const baseUrl = 'http://localhost:8001'; // Assurez-vous que cette URL correspond à votre backend
+      const baseUrl = 'https://api.dpr.codelands.me'; // Assurez-vous que cette URL correspond à votre backend
       const url = `${baseUrl}/api/sse/subscribe/${this.clientId}`;
 
       this.eventSource = new EventSource(url);

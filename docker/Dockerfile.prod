@@ -1,0 +1,11 @@
+# Étape 1 : Image de base pour servir les fichiers statiques avec Nginx
+FROM nginx:stable-alpine
+
+# Copie du dossier ./dist généré par la pipeline vers le dossier utilisé par Nginx
+COPY ./dist /usr/share/nginx/html
+
+# Exposer le port 80 pour le trafic HTTP
+EXPOSE 80
+
+# Commande par défaut pour démarrer Nginx
+CMD ["nginx", "-g", "daemon off;"]

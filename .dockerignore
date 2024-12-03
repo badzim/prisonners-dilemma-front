@@ -1,0 +1,8 @@
+
+.git
+.gitignore
+docker-compose.yml
+README.md
+npm-debug.log
+yarn-error.log
+.env
