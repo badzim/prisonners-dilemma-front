@@ -1,0 +1,106 @@
+:root {
+  /* Couleurs de thème global */
+  --background-color: #f0f8ff; /* Couleur de fond claire (AliceBlue) */
+  --primary-color: #003366; /* Bleu foncé marin */
+  --text-color: #000000; /* Texte noir */
+  --border-color: #cccccc; /* Couleur des bordures */
+
+  /* Vos variables existantes */
+  --player1-color: #4caf50; /* Vert pour le joueur 1 */
+  --player2-color: #ff5722; /* Orange pour le joueur 2 */
+  --neutral-color: #9e9e9e; /* Neutre pour les états inactifs */
+  --positive-color: #8bc34a; /* Résultat positif (coopération) */
+  --negative-color: #f44336; /* Résultat négatif (trahison) */
+  --highlight-color: #ffc107; /* Attention ou choix en surbrillance */
+}
+
+/* Structure du conteneur principal */
+.container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 96vh;
+
+  padding: 0px;
+  gap: 0px;
+  background-color: var(--background-color);
+  border: solid 10px green;
+  color: var(--text-color);
+}
+
+/* Zone des joueurs */
+.player {
+  flex: 1;
+  text-align: center;
+  padding: 20px;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--primary-color);
+  color: var(--vt-c-white); /* Texte blanc pour contraster avec le bleu marine */
+  transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.player:hover {
+  transform: scale(1.05);
+  background: var(--highlight-color);
+  color: var(--vt-c-black);
+}
+
+/* Boutons */
+.button {
+  background: var(--primary-color);
+  color: var(--vt-c-white);
+  border: none;
+}
+
+.button:hover {
+  background: var(--positive-color);
+}
+
+.button.negative:hover {
+  background: var(--negative-color);
+}
+
+
+@keyframes flash {
+  0% {
+    background-color: var(--highlight-color);
+  }
+  100% {
+    background-color: var(--color-background-soft);
+  }
+}
+
+html, body, #app {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  padding: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+
+.player.chosen {
+  animation: flash 1s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .player-section {
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .player {
+    width: 100%;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
