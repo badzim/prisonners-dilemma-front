@@ -10,7 +10,7 @@ const routes = [
   { path: '/game/:clientId', name: 'Game', component: Game, props:true },
   { path: '/game/initiate-game/:clientId', name: 'InitiateGame', component: InitiateGame, props:true },
   { path: '/game/join-game/:clientId', name: 'JoinGame', component: JoinGame, props:true },
-  { path: '/game//partie-en-cours/:clientId', name: 'PartieEnCours', component: PartieEnCours, props:true }
+  { path: '/game/partie-en-cours/:clientId', name: 'PartieEnCours', component: PartieEnCours, props:true }
 ];
 
 const router = createRouter({

@@ -14,6 +14,7 @@ const props = defineProps({
 const router = useRouter();
 const sseStore = useSseStore();
 const { connected} = storeToRefs(sseStore);
+
 function handleDisconnect() {
   sseStore.disconnect();
       // Redirection après déconnexion

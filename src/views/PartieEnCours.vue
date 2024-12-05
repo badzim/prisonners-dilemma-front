@@ -1,16 +1,201 @@
 <script setup>
-import { defineProps } from 'vue';
+import GameLayout from '@/components/GameLayout.vue';
+import { useSseStore } from '@/stores/sseStore';
+import axios from 'axios';
+import { storeToRefs } from 'pinia';
+import { ref, onMounted } from 'vue';
 
-const props = defineProps(['clientId']); // Client ID passé depuis la route
+const props = defineProps(['clientId']);
+
+// État de la partie
+const gameReady = ref(false);
+const userChoice = ref(null);
+const waitingForResult = ref(false);
+const canMakeChoice = ref(true);
+const gameFinished = ref(false);
+const tourFinishedMessage = ref('');
+const gameMessage = ref('');
+const countdown = ref(0);
+
+// Gestion de l'abandon
+const abandonModalVisible = ref(false); // Affiche la modale pour abandonner
+const selectedStrategy = ref(''); // Stratégie choisie par l'utilisateur
+const strategies = ref([
+  'DONNANTDONNANT',
+  'DONNANTDONNANTALEATOIRE',
+  'DONNANTPOURDEUXDONNANTS',
+  'DONNANTPOURDEUXDONNANTSALEATOIRE',
+  'SONDEURNAIF',
+  'SONDEURREPENTANT',
+  'PACIFICATEURNAIF',
+  'VRAIPACIFICATEUR',
+  'ALEATOIRE',
+  'TOUJOURSTRAHIR',
+  'TOUJOURSCOOPERER',
+  'RANCUNIERSTRATEGIE',
+  'PAVLOVSTRATEGIE',
+  'PAVLOVALEATOIRE',
+  'ADAPTATIF',
+  'GRADUEL',
+  'DONNANTDONNANTSOUPCONNEUX',
+  'RANCUNIERDOUX',
+]);
+
+// SSE Store
+const sseStore = useSseStore();
+const { eventSource } = storeToRefs(sseStore);
+
+// Fonction pour afficher le résultat pendant 5 secondes
+function showResultForFiveSeconds(message) {
+  tourFinishedMessage.value = message;
+  countdown.value = 8;
+
+  const interval = setInterval(() => {
+    countdown.value -= 1;
+    if (countdown.value <= 0) {
+      clearInterval(interval);
+      waitingForResult.value = false;
+    }
+  }, 1000);
+}
+
+// Gérer le choix de l'utilisateur
+async function handleUserChoice(choice) {
+  if (!waitingForResult.value) {
+    userChoice.value = choice;
+    waitingForResult.value = true;
+    canMakeChoice.value = false;
+
+    try {
+      await axios.post('https://api.dpr.codelands.me/api/rencontre/play/choix', null, {
+        params: {
+          clientId: props.clientId,
+          action: userChoice.value,
+          strategie: selectedStrategy.value,
+        },
+      });
+      console.log('Choix envoyé au serveur');
+    } catch (error) {
+      console.error("Erreur lors de l'envoi du choix :", error);
+    }
+  }
+}
+
+// Gérer l'abandon
+async function handleAbandon() {
+  if (!selectedStrategy.value) {
+    alert('Veuillez sélectionner une stratégie avant d’abandonner.');
+    return;
+  }
+    handleUserChoice('ABONDONNER')
+    console.log('Abandon envoyé avec la stratégie :', selectedStrategy.value);
+    gameFinished.value = true;
+    gameMessage.value = 'Vous avez abandonné la partie.';
+    abandonModalVisible.value = false;
+} 
+
+
+// Gérer les événements SSE
+onMounted(() => {
+  if (eventSource.value) {
+    eventSource.value.addEventListener('game-started', (event) => {
+      console.log('Message reçu :', event.data);
+      gameReady.value = true;
+      gameMessage.value = event.data;
+    });
+
+    eventSource.value.addEventListener('tour-finished', (event) => {
+      console.log('Tour terminé :', event.data);
+      showResultForFiveSeconds(event.data);
+    });
+
+    eventSource.value.addEventListener('make-choice', (event) => {
+      console.log('Veuillez faire un choix :', event.data);
+      gameMessage.value = event.data;
+      canMakeChoice.value = true;
+    });
+
+    eventSource.value.addEventListener('game-finished', (event) => {
+      console.log('Partie terminée :', event.data);
+      gameMessage.value = event.data;
+      gameFinished.value = true;
+    });
+
+    eventSource.value.onerror = () => {
+      console.error('Erreur de connexion SSE');
+      eventSource.value.close();
+    };
+  }
+});
 </script>
 
+
 <template>
-  <div class="partie-en-cours">
-    <h1>Partie en Cours</h1>
-    <p>En attente d'un autre joueur pour commencer la partie...</p>
-    <p>Votre ID : {{ clientId }}</p>
-  </div>
-</template>
+    <GameLayout :clientId="props.clientId">
+      <div class="partie-en-cours">
+        <h1>Partie en Cours</h1>
+        <p v-if="gameReady">{{ gameMessage }}</p>
+  
+        <div v-if="countdown > 0 && !gameFinished">
+          <p>Prochain tour dans {{ countdown }} seconde(s)...</p>
+          <p>{{ tourFinishedMessage }}</p>
+        </div>
+  
+        <!-- Boutons pour Coopérer ou Trahir -->
+        <div v-if="gameReady && !gameFinished" class="choices">
+          <button
+            class="btn btn-cooperate"
+            :disabled="waitingForResult"
+            @click="handleUserChoice('COOPERER')"
+          >
+            Coopérer
+          </button>
+          <button
+            class="btn btn-betray"
+            :disabled="waitingForResult"
+            @click="handleUserChoice('TRAHIR')"
+          >
+            Trahir
+          </button>
+        </div>
+  
+        <!-- Bouton Abandonner -->
+        <button
+          class="btn btn-abandon"
+          v-if="gameReady && !gameFinished"
+          :disabled="waitingForResult"
+          @click="abandonModalVisible = true"
+        >
+          Abandonner
+        </button>
+  
+        <!-- Modale pour abandonner -->
+        <div v-if="abandonModalVisible" class="modal">
+          <div class="modal-content">
+            <h3>Abandonner la partie</h3>
+            <p>Veuillez choisir une stratégie avant d’abandonner :</p>
+            <select v-model="selectedStrategy">
+              <option disabled value="">Sélectionnez une stratégie</option>
+              <option v-for="strategy in strategies" :key="strategy" :value="strategy">
+                {{ strategy }}
+              </option>
+            </select>
+            <div class="modal-buttons">
+              <button class="btn btn-confirm" @click="handleAbandon">Confirmer</button>
+              <button class="btn btn-cancel" @click="abandonModalVisible = false">Annuler</button>
+            </div>
+          </div>
+        </div>
+  
+        <!-- Message en cas de fin de partie -->
+        <div v-if="gameFinished" class="game-finished">
+          <h2>Partie terminée</h2>
+          <p>{{ gameMessage }}</p>
+        </div>
+      </div>
+    </GameLayout>
+  </template>
+  
 
 <style scoped>
 .partie-en-cours {
@@ -21,9 +206,97 @@ const props = defineProps(['clientId']); // Client ID passé depuis la route
 
 h1 {
   color: #007bff;
+  margin-bottom: 20px;
 }
 
 p {
   margin: 10px 0;
+  font-size: 16px;
+}
+
+.choices {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  margin: 10px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:focus {
+  outline: none;
+}
+
+.btn:disabled {
+  background-color: var(--neutral-color);
+  cursor: not-allowed;
+}
+
+.btn-cooperate {
+  background-color: #28a745; /* Vert pour Coopérer */
+  color: white;
+}
+
+.btn-betray {
+  background-color: #dc3545; /* Rouge pour Trahir */
+  color: white;
+}
+
+.btn-abandon {
+  background-color: #ff5733; /* Orange pour abandonner */
+  color: white;
+}
+
+.btn-confirm {
+  background-color: #28a745; /* Vert pour confirmer */
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #dc3545; /* Rouge pour annuler */
+  color: white;
+}
+
+button:hover:not(:disabled) {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+button:active {
+  transform: scale(1);
+  box-shadow: none;
+}
+
+.game-finished {
+  margin-top: 20px;
+  font-size: 18px;
+  color: #6c757d;
+}
+
+.modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  text-align: center;
+}
+
+.modal-content {
+  margin-bottom: 20px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
 }
 </style>

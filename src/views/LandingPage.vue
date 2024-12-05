@@ -1,3 +1,17 @@
+<script setup>
+import router from '@/router';
+import { ref } from 'vue';
+
+const clientId = ref('')
+
+function goToGame() {
+  if (clientId) {
+    // Naviguer vers la page du jeu avec le clientId en paramètre
+    router.push({ name: 'Game', params: { clientId: clientId.value } });
+  }
+}
+</script>
+
 <template>
   <div class="landing-page">
     <h1>Bienvenue dans le jeu du Dilemme du Prisonnier</h1>
@@ -16,20 +30,6 @@
     </button>
   </div>
 </template>
-
-<script setup>
-import router from '@/router';
-import { ref } from 'vue';
-
-const clientId = ref('')
-
-function goToGame() {
-  if (clientId) {
-    // Naviguer vers la page du jeu avec le clientId en paramètre
-    router.push({ name: 'Game', params: { clientId: clientId.value } });
-  }
-}
-</script>
 
 <style scoped>
 .landing-page {

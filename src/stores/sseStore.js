@@ -31,12 +31,6 @@ export const useSseStore = defineStore('sse', {
           this.connected = true;
         };
 
-        this.eventSource.onmessage = (event) => {
-          const data = event.data;
-          console.log('Message reçu :', data);
-          this.messages.push(data);
-        };
-
         this.eventSource.onerror = (error) => {
           console.error('Erreur SSE :', error);
           this.errorMessage = 'Erreur lors de la connexion au serveur.';
