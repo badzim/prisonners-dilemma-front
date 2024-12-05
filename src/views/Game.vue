@@ -1,95 +1,71 @@
-<template>
-  <div class="game-page">
-    <header class="game-header">
-      <div class="player-id">ID Joueur : {{ clientId }}</div>
-      <button class="disconnect-button" @click="disconnect">Se déconnecter</button>
-    </header>
-    <div class="game-content">
-      <LoadingScreen v-if="loading" />
-      <div v-else>
-        <p v-if="message">message du serveur : {{ message }}...</p>
-        <!-- Autres éléments du jeu -->
-      </div>
-    </div>
-  </div>
-</template>
-
-<script>
+<script setup>
+import { useSseStore } from '@/stores/sseStore';
+import { storeToRefs } from 'pinia';
 import LoadingScreen from '../components/LoadingScreen.vue';
+import { onMounted, ref } from 'vue';
+import { useRouter } from 'vue-router';
+import GameLayout from '@/components/GameLayout.vue';
 
-export default {
-  name: 'Game',
-  props: ['clientId'],
-  components: {
-    LoadingScreen,
-  },
-  data() {
-    return {
-      eventSource: null,
-      message: '',
-      connected: false,
-      loading: true, // Nouvel état pour le chargement
-    };
-  },
-  mounted() {
-    this.connectToSSE();
-  },
-  methods: {
-    connectToSSE() {
-      if (this.connected) {
-        console.log('Déjà connecté.');
-        return;
-      }
+const sseStore = useSseStore();
+const props = defineProps(['clientId'])
 
-      const baseUrl = 'https://api.dpr.codelands.me'; // Assurez-vous que cette URL correspond à votre backend
-      const url = `${baseUrl}/api/sse/subscribe/${this.clientId}`;
+const {loading} = storeToRefs(sseStore);
+const message = ref('')
+const clientId = props.clientId
 
-      this.eventSource = new EventSource(url);
+const router = useRouter();
 
-      this.eventSource.onopen = () => {
-        console.log('Connexion SSE établie.');
-        this.connected = true;
-        // On attend le ping du serveur, le chargement reste actif
-      };
 
-      this.eventSource.onmessage = (event) => {
-        console.log('Message reçu :', event.data);
-        this.message = event.data;
-      };
+console.log("hmmm", props.clientId)
 
-      this.eventSource.onerror = (error) => {
-        console.error('Erreur SSE :', error);
-        if (this.eventSource.readyState === EventSource.CLOSED) {
-          console.log('Tentative de reconnexion dans 5 secondes...');
-          setTimeout(() => {
-            this.connectToSSE();
-          }, 5000);
-        }
-      };
+onMounted(() => {
+    connectToSSE()
+  }  
+)
 
-      // Écoute de l'événement 'ping' pour arrêter le chargement
-      this.eventSource.addEventListener('ping', (event) => {
-        console.log('Événement ping reçu :', event.data);
-        this.message = event.data;
-        this.loading = false; // Arrête le chargement une fois le ping reçu
-      });
-    },
-    disconnect() {
-      if (this.eventSource) {
-        this.eventSource.close();
-        this.connected = false;
-        this.message = 'Déconnecté du serveur.';
-        console.log('Connexion SSE fermée.');
-        // Redirige vers la page d'accueil après déconnexion
-        this.$router.push({ name: 'Home' });
-      }
-    },
-  },
-  beforeUnmount() {
-    this.disconnect();
-  },
-};
+function connectToSSE() {
+  sseStore.connect(props.clientId);
+  message.value = 'ping'
+}
+
+
+function initiateGame() {
+  if (clientId) {
+    // Naviguer vers la page du jeu avec le clientId en paramètre
+    console.log("initiating game")
+    router.push({ name: 'InitiateGame', params: { clientId: clientId } });
+  }
+}
+
+function joinGame() {
+  if (clientId) {
+    // Naviguer vers la page du jeu avec le clientId en paramètre
+    console.log("joining game")
+    router.push({ name: 'JoinGame', params: { clientId: clientId } });
+  }
+}
+
 </script>
+
+
+<template>
+
+  <GameLayout :client-id="clientId">
+    <div class="game-page">
+      <div class="game-content">
+        <LoadingScreen v-if="loading" />
+        <div v-else>
+          <p v-if="message">Message du serveur : {{ message }}...</p>
+          <!-- Add your two choices here -->
+          <div class="choices">
+            <button class="choice-button" @click="initiateGame">Initier une Partie</button>
+            <button class="choice-button" @click="joinGame">Rejoindre une Partie</button>
+          </div>
+        </div>
+      </div>
+    </div >
+  </GameLayout>
+</template>
 
 <style scoped>
 .game-page {
@@ -142,5 +118,26 @@ export default {
 .game-content p {
   font-size: 1.2rem;
   color: var(--primary-color);
+}
+
+.choices {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+}
+
+.choice-button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.choice-button:hover {
+  background-color: var(--highlight-color);
 }
 </style>
