@@ -3,19 +3,24 @@ import GameLayout from '@/components/GameLayout.vue';
 import { useSseStore } from '@/stores/sseStore';
 import axios from 'axios';
 import { storeToRefs } from 'pinia';
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 
 const props = defineProps(['clientId']);
 
-// État de la partie
-const gameReady = ref(false);
-const userChoice = ref(null);
-const waitingForResult = ref(false);
-const canMakeChoice = ref(true);
-const gameFinished = ref(false);
-const tourFinishedMessage = ref('');
-const gameMessage = ref('');
-const countdown = ref(0);
+// SSE Store
+const sseStore = useSseStore();
+const {
+  gameReady,
+  userChoice,
+  waitingForResult,
+  canMakeChoice,
+  gameFinished,
+  gameMessage,
+  countdown,
+  gameEnAttente,
+  tourFinishedMessage,
+} = storeToRefs(sseStore);
 
 // Gestion de l'abandon
 const abandonModalVisible = ref(false); // Affiche la modale pour abandonner
@@ -41,23 +46,7 @@ const strategies = ref([
   'RANCUNIERDOUX',
 ]);
 
-// SSE Store
-const sseStore = useSseStore();
-const { eventSource } = storeToRefs(sseStore);
-
-// Fonction pour afficher le résultat pendant 5 secondes
-function showResultForFiveSeconds(message) {
-  tourFinishedMessage.value = message;
-  countdown.value = 8;
-
-  const interval = setInterval(() => {
-    countdown.value -= 1;
-    if (countdown.value <= 0) {
-      clearInterval(interval);
-      waitingForResult.value = false;
-    }
-  }, 1000);
-}
+const router = useRouter()
 
 // Gérer le choix de l'utilisateur
 async function handleUserChoice(choice) {
@@ -95,50 +84,27 @@ async function handleAbandon() {
 } 
 
 
-// Gérer les événements SSE
-onMounted(() => {
-  if (eventSource.value) {
-    eventSource.value.addEventListener('game-started', (event) => {
-      console.log('Message reçu :', event.data);
-      gameReady.value = true;
-      gameMessage.value = event.data;
-    });
+// Gérer l'abandon
+function redirectToHome() {
+    sseStore.resetGameStates()
+    router.push({ name: 'Game', params: { clientId: props.clientId } });
+} 
 
-    eventSource.value.addEventListener('tour-finished', (event) => {
-      console.log('Tour terminé :', event.data);
-      showResultForFiveSeconds(event.data);
-    });
 
-    eventSource.value.addEventListener('make-choice', (event) => {
-      console.log('Veuillez faire un choix :', event.data);
-      gameMessage.value = event.data;
-      canMakeChoice.value = true;
-    });
-
-    eventSource.value.addEventListener('game-finished', (event) => {
-      console.log('Partie terminée :', event.data);
-      gameMessage.value = event.data;
-      gameFinished.value = true;
-    });
-
-    eventSource.value.onerror = () => {
-      console.error('Erreur de connexion SSE');
-      eventSource.value.close();
-    };
-  }
-});
 </script>
 
 
 <template>
     <GameLayout :clientId="props.clientId">
-      <div class="partie-en-cours">
-        <h1>Partie en Cours</h1>
-        <p v-if="gameReady">{{ gameMessage }}</p>
-  
+      <div  class="partie-en-cours">
+        <h1 v-if="gameEnAttente">Partie en Attente</h1>
+        <p v-if="gameEnAttente">Veuillez attendre qu'un  joueur rejoigne votre partie   </p>
+        <h1 v-if="!gameFinished && !gameEnAttente">Partie en Cours</h1>
+        <p v-if="gameReady && !gameFinished && !waitingForResult ">{{ gameMessage }}</p>
+        <p v-if="waitingForResult && !gameFinished && gameReady && countdown <= 0">Veuillez attendre la réponse de l'autre joueur</p>
         <div v-if="countdown > 0 && !gameFinished">
-          <p>Prochain tour dans {{ countdown }} seconde(s)...</p>
           <p>{{ tourFinishedMessage }}</p>
+          <p>Prochain tour dans {{ countdown }} seconde(s)...</p>
         </div>
   
         <!-- Boutons pour Coopérer ou Trahir -->
@@ -168,6 +134,8 @@ onMounted(() => {
         >
           Abandonner
         </button>
+
+
   
         <!-- Modale pour abandonner -->
         <div v-if="abandonModalVisible" class="modal">
@@ -192,6 +160,15 @@ onMounted(() => {
           <h2>Partie terminée</h2>
           <p>{{ gameMessage }}</p>
         </div>
+                        <!-- Bouton Abandonner -->
+        <button
+          class="btn btn-abandon"
+          v-if="gameFinished"
+          :disabled="!gameFinished"
+          @click="redirectToHome"
+        >
+          Home
+        </button>
       </div>
     </GameLayout>
   </template>
@@ -280,11 +257,11 @@ button:active {
 
 .modal {
   position: fixed;
-  top: 50%;
+  top: 29%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
-  padding: 20px;
+  padding: 40px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   text-align: center;

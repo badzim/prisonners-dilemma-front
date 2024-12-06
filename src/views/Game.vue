@@ -55,7 +55,7 @@ function joinGame() {
       <div class="game-content">
         <LoadingScreen v-if="loading" />
         <div v-else>
-          <p v-if="message">Message du serveur : {{ message }}...</p>
+          <h1>Tu veux quoi ?</h1>
           <!-- Add your two choices here -->
           <div class="choices">
             <button class="choice-button" @click="initiateGame">Initier une Partie</button>
@@ -121,7 +121,6 @@ function joinGame() {
 }
 
 .choices {
-  margin-top: 20px;
   display: flex;
   gap: 10px;
 }

@@ -43,67 +43,122 @@ async function initierRencontre() {
 
 <template>
   <GameLayout :clientId="props.clientId">
-    <div class="initiate-game">
-      <h1>Initier une Partie</h1>
-      <form @submit.prevent="initierRencontre">
-        <label for="nombre-tours">Nombre de Tours :</label>
-        <input
-          id="nombre-tours"
-          type="number"
-          v-model="nombreTours"
-          min="1"
-          required
-        />
-        <button type="submit" :disabled="loading">
+    <h1 class="title">Initier une Partie</h1>
+    <div class="game-content">
+      <div class="initiate-game-container">
+      <form @submit.prevent="initierRencontre" class="initiate-form">
+        <div class="form-group">
+          <label for="nombre-tours" class="form-label">Nombre de Tours :</label>
+          <input
+            id="nombre-tours"
+            type="number"
+            v-model="nombreTours"
+            min="1"
+            required
+            class="form-input"
+          />
+        </div>
+        <button type="submit" :disabled="loading" class="btn init-btn">
           {{ loading ? 'Chargement...' : 'Initier' }}
         </button>
       </form>
-      <p v-if="statusMessage" :class="{'success': !loading, 'error': loading}">
+      <p v-if="statusMessage" :class="['status-message', { success: !loading, error: loading }]">
         {{ statusMessage }}
       </p>
-    </div>
+      </div>
+    </div >
+    
   </GameLayout>
 </template>
 
 <style scoped>
-.initiate-game {
+.initiate-game-container {
+  text-align: center;
   padding: 20px;
-  font-family: Arial, sans-serif;
+  max-width: 500px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-label {
-  display: block;
-  margin-bottom: 8px;
+.game-content {
+  height: 82%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
-input {
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+.title {
+  font-size: 1.8rem;
+  color: var(--primary-color);
+  margin-bottom: 20px;
+}
+
+.initiate-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.form-group {
+  text-align: left;
+}
+
+.form-label {
+  font-size: 1rem;
+  color: var(--primary-color);
+  margin-bottom: 5px;
+}
+
+.form-input {
   width: 100%;
-  max-width: 300px;
+  padding: 10px;
+  font-size: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: 5px;
 }
 
-button {
-  padding: 10px 20px;
-  color: #fff;
-  background-color: #007bff;
+.form-input:focus {
+  border-color: var(--highlight-color);
+  box-shadow: 0 0 8px var(--highlight-color);
+}
+
+.btn {
+  padding: 12px 20px;
+  font-size: 1rem;
+  color: white;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-button:disabled {
-  background-color: #ccc;
+.init-btn {
+  background-color: var(--primary-color);
+}
+
+.init-btn:hover:not(:disabled) {
+  background-color: var(--highlight-color);
+}
+
+.init-btn:disabled {
+  background-color: var(--disabled-color);
   cursor: not-allowed;
 }
 
-.success {
-  color: green;
+.status-message {
+  margin-top: 20px;
+  font-size: 1rem;
 }
 
-.error {
-  color: red;
+.status-message.success {
+  color: var(--positive-color);
+}
+
+.status-message.error {
+  color: var(--error-color);
 }
 </style>

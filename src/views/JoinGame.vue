@@ -62,45 +62,62 @@ async function rejoindreUneRencontre() {
 
 <template>
     <GameLayout :clientId="props.clientId">
-      <div class="join-game-container">
-        <h1 class="title">Rejoindre une Partie</h1>
-        <div class="actions">
-          <button class="btn fetch-btn" :disabled="loading" @click="getRencontres">
-            Récupérer les rencontres
-          </button>
-          <button
-            class="btn join-btn"
-            :disabled="loading || !selectedRencontreId"
-            @click="rejoindreUneRencontre"
-          >
-            Rejoindre la rencontre
-          </button>
+      <h1 class="title">Rejoindre une Partie</h1>
+      <div class="game-content">
+        
+        <div class="join-game-container">
+          
+          <div class="actions">
+            <button class="btn fetch-btn" :disabled="loading" @click="getRencontres">
+              Récupérer les rencontres
+            </button>
+            <button
+              class="btn join-btn"
+              :disabled="loading || !selectedRencontreId"
+              @click="rejoindreUneRencontre"
+            >
+              Rejoindre la rencontre
+            </button>
+          </div>
+    
+          <div v-if="statusMessage.length" class="rencontres-list">
+            <h2 class="subtitle">Rencontres disponibles</h2>
+            <select v-model="selectedRencontreId" class="select">
+              <option disabled value="">Sélectionnez une rencontre</option>
+              <option v-for="partie in statusMessage" :key="partie.idRencontre" :value="partie.idRencontre">
+                {{ partie.initiateur }}
+              </option>
+            </select>
+          </div>
+    
+          <p v-if="statusMessageRejoindre" class="status-message">{{ statusMessageRejoindre }}</p>
+      
         </div>
-  
-        <div v-if="statusMessage.length" class="rencontres-list">
-          <h2 class="subtitle">Rencontres disponibles</h2>
-          <select v-model="selectedRencontreId" class="select">
-            <option disabled value="">Sélectionnez une rencontre</option>
-            <option v-for="partie in statusMessage" :key="partie.idRencontre" :value="partie.idRencontre">
-              {{ partie.initiateur }}
-            </option>
-          </select>
-        </div>
-  
-        <p v-if="statusMessageRejoindre" class="status-message">{{ statusMessageRejoindre }}</p>
       </div>
+      
     </GameLayout>
   </template>
   
   <style scoped>
   .join-game-container {
     text-align: center;
+
     padding: 20px;
     max-width: 500px;
     margin: 0 auto;
     background: white;
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .game-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 90%;
+
   }
   
   .title {
@@ -112,7 +129,7 @@ async function rejoindreUneRencontre() {
   .actions {
     display: flex;
     justify-content: space-around;
-    margin-bottom: 20px;
+    gap: 10px;
   }
   
   .btn {
