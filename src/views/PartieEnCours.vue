@@ -96,80 +96,82 @@ function redirectToHome() {
 
 <template>
     <GameLayout :clientId="props.clientId">
-      <div  class="partie-en-cours">
-        <h1 v-if="gameEnAttente">Partie en Attente</h1>
-        <p v-if="gameEnAttente">Veuillez attendre qu'un  joueur rejoigne votre partie   </p>
-        <h1 v-if="!gameFinished && !gameEnAttente">Partie en Cours</h1>
-        <p v-if="gameReady && !gameFinished && !waitingForResult ">{{ gameMessage }}</p>
-        <p v-if="waitingForResult && !gameFinished && gameReady && countdown <= 0">Veuillez attendre la réponse de l'autre joueur</p>
-        <div v-if="countdown > 0 && !gameFinished">
-          <p>{{ tourFinishedMessage }}</p>
-          <p>Prochain tour dans {{ countdown }} seconde(s)...</p>
-        </div>
+      <div class="game-content">
+        <div  class="partie-en-cours">
+          <h1 v-if="gameEnAttente">Partie en Attente</h1>
+          <p v-if="gameEnAttente">Veuillez attendre qu'un  joueur rejoigne votre partie   </p>
+          <h1 v-if="!gameFinished && !gameEnAttente">Partie en Cours</h1>
+          <p v-if="gameReady && !gameFinished && !waitingForResult ">{{ gameMessage }}</p>
+          <p v-if="waitingForResult && !gameFinished && gameReady && countdown <= 0">Veuillez attendre la réponse de l'autre joueur</p>
+          <div v-if="countdown > 0 && !gameFinished">
+            <p>{{ tourFinishedMessage }}</p>
+            <p>Prochain tour dans {{ countdown }} seconde(s)...</p>
+          </div>
   
-        <!-- Boutons pour Coopérer ou Trahir -->
-        <div v-if="gameReady && !gameFinished" class="choices">
-          <button
-            class="btn btn-cooperate"
-            :disabled="waitingForResult"
-            @click="handleUserChoice('COOPERER')"
-          >
-            Coopérer
-          </button>
-          <button
-            class="btn btn-betray"
-            :disabled="waitingForResult"
-            @click="handleUserChoice('TRAHIR')"
-          >
-            Trahir
-          </button>
-        </div>
+          <!-- Boutons pour Coopérer ou Trahir -->
+          <div v-if="gameReady && !gameFinished" class="choices">
+            <button
+              class="btn btn-cooperate"
+              :disabled="waitingForResult"
+              @click="handleUserChoice('COOPERER')"
+            >
+              Coopérer
+            </button>
+            <button
+              class="btn btn-betray"
+              :disabled="waitingForResult"
+              @click="handleUserChoice('TRAHIR')"
+            >
+              Trahir
+            </button>
+          </div>
   
-        <!-- Bouton Abandonner -->
-        <button
-          class="btn btn-abandon"
-          v-if="gameReady && !gameFinished"
-          :disabled="waitingForResult"
-          @click="abandonModalVisible = true"
-        >
-          Abandonner
-        </button>
+          <!-- Bouton Abandonner -->
+          <button
+            class="btn btn-abandon"
+            v-if="gameReady && !gameFinished"
+            :disabled="waitingForResult"
+            @click="abandonModalVisible = true"
+          >
+            Abandonner
+          </button>
 
 
   
-        <!-- Modale pour abandonner -->
-        <div v-if="abandonModalVisible" class="modal">
-          <div class="modal-content">
-            <h3>Abandonner la partie</h3>
-            <p>Veuillez choisir une stratégie avant d’abandonner :</p>
-            <select v-model="selectedStrategy">
-              <option disabled value="">Sélectionnez une stratégie</option>
-              <option v-for="strategy in strategies" :key="strategy" :value="strategy">
-                {{ strategy }}
-              </option>
-            </select>
-            <div class="modal-buttons">
-              <button class="btn btn-confirm" @click="handleAbandon">Confirmer</button>
-              <button class="btn btn-cancel" @click="abandonModalVisible = false">Annuler</button>
+          <!-- Modale pour abandonner -->
+          <div v-if="abandonModalVisible" class="modal">
+            <div class="modal-content">
+              <h3>Abandonner la partie</h3>
+              <p>Veuillez choisir une stratégie avant d’abandonner :</p>
+              <select v-model="selectedStrategy">
+                <option disabled value="">Sélectionnez une stratégie</option>
+                <option v-for="strategy in strategies" :key="strategy" :value="strategy">
+                  {{ strategy }}
+                </option>
+              </select>
+              <div class="modal-buttons">
+                <button class="btn btn-confirm" @click="handleAbandon">Confirmer</button>
+                <button class="btn btn-cancel" @click="abandonModalVisible = false">Annuler</button>
+              </div>
             </div>
           </div>
-        </div>
   
-        <!-- Message en cas de fin de partie -->
-        <div v-if="gameFinished" class="game-finished">
-          <h2>Partie terminée</h2>
-          <p>{{ gameMessage }}</p>
-        </div>
+          <!-- Message en cas de fin de partie -->
+          <div v-if="gameFinished" class="game-finished">
+            <h2>Partie terminée</h2>
+            <p>{{ gameMessage }}</p>
+          </div>
                         <!-- Bouton Abandonner -->
-        <button
-          class="btn btn-abandon"
-          v-if="gameFinished"
-          :disabled="!gameFinished"
-          @click="redirectToHome"
-        >
-          Home
-        </button>
-      </div>
+          <button
+            class="btn btn-abandon"
+            v-if="gameFinished"
+            :disabled="!gameFinished"
+            @click="redirectToHome"
+          >
+            Home
+          </button>
+        </div>
+      </div> 
     </GameLayout>
   </template>
   
@@ -179,6 +181,19 @@ function redirectToHome() {
   padding: 20px;
   font-family: Arial, sans-serif;
   text-align: center;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 35%;
+  min-width: 320px  ;
+
+}
+.game-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 90%;
 }
 
 h1 {
@@ -257,11 +272,13 @@ button:active {
 
 .modal {
   position: fixed;
-  top: 29%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   background: white;
-  padding: 40px;
+  padding: 50px;
+  width: 50%;
+  min-width: 390px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   text-align: center;

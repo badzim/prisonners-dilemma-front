@@ -2,7 +2,7 @@
 import { useSseStore } from '@/stores/sseStore';
 import { storeToRefs } from 'pinia';
 import LoadingScreen from '../components/LoadingScreen.vue';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import GameLayout from '@/components/GameLayout.vue';
 
@@ -45,16 +45,21 @@ function joinGame() {
   }
 }
 
+watchEffect(() => {
+      if (sseStore.onAuthError) {
+        sseStore.disconnect(router);
+      }
+});
+
+
 </script>
 
 
 <template>
-
-  <GameLayout :client-id="clientId">
+  <LoadingScreen v-if="loading" />
+  <GameLayout v-else :client-id="clientId">
     <div class="game-page">
       <div class="game-content">
-        <LoadingScreen v-if="loading" />
-        <div v-else>
           <h1>Tu veux quoi ?</h1>
           <!-- Add your two choices here -->
           <div class="choices">
@@ -62,8 +67,7 @@ function joinGame() {
             <button class="choice-button" @click="joinGame">Rejoindre une Partie</button>
           </div>
         </div>
-      </div>
-    </div >
+      </div>  
   </GameLayout>
 </template>
 

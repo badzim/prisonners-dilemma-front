@@ -1,7 +1,8 @@
 <script setup>
 import { useSseStore } from '@/stores/sseStore';
+import axios from 'axios';
 import { storeToRefs } from 'pinia';
-import { defineProps } from 'vue';
+import { defineProps, watch, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 
 const props = defineProps({
@@ -11,18 +12,38 @@ const props = defineProps({
   },
 });
 
-const router = useRouter();
-const sseStore = useSseStore();
-const { connected} = storeToRefs(sseStore);
+const router = useRouter()
 
-function handleDisconnect() {
-  sseStore.disconnect();
-      // Redirection après déconnexion
-      if (!connected.value) {
-        console.log('Redirection après déconnexion...');
-        router.push('/')
-      }
+const sseStore = useSseStore();
+const { connected, gameReady, waitingForResult, onAuthError } = storeToRefs(sseStore);
+
+async function handleDisconnect() {
+  if (gameReady.value) {
+    // Envoyer le choix "abandonne" avec la stratégie définie
+    try {
+
+      await axios.post('https://api.dpr.codelands.me/api/rencontre/play/choix', null, {
+          params: {
+            clientId: props.clientId,
+            action: 'ABONDONNER',
+            strategie: 'ALEATOIRE',
+          },
+      });
+      console.log('Choix envoyé au serveur');
+    } 
+    catch (error) {
+      console.error("Erreur lors de l'envoi du choix :", error);
+    } 
+    finally {
+      waitingForResult.value = false;
+    }
+  }
+
+  // Déconnecter le client
+  sseStore.disconnect(router);
 }
+
+
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 // sseStore.js
 import { defineStore } from 'pinia';
+import { useRouter } from 'vue-router';
 
 export const useSseStore = defineStore('sse', {
   state: () => ({
@@ -10,6 +11,7 @@ export const useSseStore = defineStore('sse', {
     errorMessage: '',
 
     // États spécifiques au jeu
+    onAuthError: false,
     gameReady: false,
     userChoice: null,
     waitingForResult: false,
@@ -45,7 +47,7 @@ export const useSseStore = defineStore('sse', {
         this.eventSource.onerror = (error) => {
           console.error('Erreur SSE :', error);
           this.errorMessage = 'Erreur lors de la connexion au serveur.';
-          this.disconnect();
+          this.onAuthError = true;
         };
 
         this.registerEventListeners();
@@ -56,17 +58,21 @@ export const useSseStore = defineStore('sse', {
       }
     },
 
-    disconnect() {
+    disconnect(router) {
       if (this.eventSource) {
         this.eventSource.close();
         this.eventSource = null;
       }
       this.connected = false;
-      this.loading = false;
       this.messages = [];
       this.errorMessage = '';
+      this.onAuthError = false;
       this.resetGameStates();
-      console.log('Déconnecté du serveur SSE.');
+      // Redirige l'utilisateur après déconnexion
+      if (router) {
+        router.push('/'); // Remplacez "/login" par la route souhaitée
+      }
+      
     },
 
     registerEventListeners() {

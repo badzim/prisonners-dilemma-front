@@ -59,7 +59,7 @@ function goToGame() {
 .play-button {
   padding: 15px 30px;
   font-size: 1.2rem;
-  color: var(--text-color-alt);
+  color: white;
   background-color: var(--primary-color);
   border: none;
   border-radius: 5px;
@@ -69,6 +69,7 @@ function goToGame() {
 
 .play-button:disabled {
   background-color: var(--neutral-color);
+  color: var(--primary-color);
   cursor: not-allowed;
 }
 
