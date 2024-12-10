@@ -25,6 +25,7 @@ const {
 // Gestion de l'abandon
 const abandonModalVisible = ref(false); // Affiche la modale pour abandonner
 const selectedStrategy = ref(''); // Stratégie choisie par l'utilisateur
+const selectedGroup = ref('') // Group choisis par l'utilisateur lors de l'abondon
 const strategies = ref([
   'DONNANTDONNANT',
   'DONNANTDONNANTALEATOIRE',
@@ -61,6 +62,7 @@ async function handleUserChoice(choice) {
           clientId: props.clientId,
           action: userChoice.value,
           strategie: selectedStrategy.value,
+          groupId: selectedGroup.value
         },
       });
       console.log('Choix envoyé au serveur');
@@ -138,19 +140,31 @@ function redirectToHome() {
 
 
   
-          <!-- Modale pour abandonner -->
+                    <!-- Modale pour abandonner -->
           <div v-if="abandonModalVisible" class="modal">
             <div class="modal-content">
               <h3>Abandonner la partie</h3>
-              <p>Veuillez choisir une stratégie avant d’abandonner :</p>
+              <p>Veuillez choisir une stratégie et un groupe avant d’abandonner :</p>
+
+              <!-- Sélecteur de stratégie -->
               <select v-model="selectedStrategy">
                 <option disabled value="">Sélectionnez une stratégie</option>
                 <option v-for="strategy in strategies" :key="strategy" :value="strategy">
                   {{ strategy }}
                 </option>
               </select>
+
+              <!-- Sélecteur de groupe -->
+              <select v-model="selectedGroup">
+                <option disabled value="">Sélectionnez un groupe</option>
+                <option value="G1_8">Groupe 1.8</option>
+                <option value="G2_5">Groupe 2.5</option>
+              </select>
+
               <div class="modal-buttons">
-                <button class="btn btn-confirm" @click="handleAbandon">Confirmer</button>
+                <button class="btn btn-confirm" :disabled="!selectedStrategy || !selectedGroup" @click="handleAbandon">
+                  Confirmer
+                </button>
                 <button class="btn btn-cancel" @click="abandonModalVisible = false">Annuler</button>
               </div>
             </div>
@@ -292,5 +306,27 @@ button:active {
   display: flex;
   justify-content: center;
   gap: 10px;
+}
+
+/* Style pour les sélecteurs */
+select {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  font-size: 16px;
+}
+
+select:focus {
+  outline: none;
+  border-color: #007bff;
+  box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Désactiver le bouton confirmer si aucune option n'est sélectionnée */
+.btn-confirm:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 </style>
