@@ -157,8 +157,10 @@ function redirectToHome() {
               <!-- Sélecteur de groupe -->
               <select v-model="selectedGroup">
                 <option disabled value="">Sélectionnez un groupe</option>
-                <option value="G1_8">Groupe 1.8</option>
-                <option value="G2_5">Groupe 2.5</option>
+                <option value="G1_8">Groupe 1 E8</option>
+                <option value="G2_5">Groupe 2 E5</option>
+                <option value="G2_10">Groupe 2 E10</option>
+
               </select>
 
               <div class="modal-buttons">
@@ -198,7 +200,7 @@ function redirectToHome() {
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   width: 35%;
-  min-width: 320px  ;
+  min-width: 280px  ;
 
 }
 .game-content {
@@ -292,7 +294,7 @@ button:active {
   background: white;
   padding: 50px;
   width: 50%;
-  min-width: 390px;
+  min-width: 315px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   text-align: center;
