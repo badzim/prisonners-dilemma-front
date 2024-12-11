@@ -3,6 +3,7 @@
   --background-color: #f0f8ff; /* Couleur de fond claire (AliceBlue) */
   --primary-color: #003366; /* Bleu foncé marin */
   --text-color: #000000; /* Texte noir */
+  --text-color-alt: #bdd6fc;
   --border-color: #cccccc; /* Couleur des bordures */
 
   /* Vos variables existantes */
@@ -11,7 +12,7 @@
   --neutral-color: #9e9e9e; /* Neutre pour les états inactifs */
   --positive-color: #8bc34a; /* Résultat positif (coopération) */
   --negative-color: #f44336; /* Résultat négatif (trahison) */
-  --highlight-color: #ffc107; /* Attention ou choix en surbrillance */
+  --highlight-color: #6607ff; /* Attention ou choix en surbrillance */
 }
 
 /* Structure du conteneur principal */

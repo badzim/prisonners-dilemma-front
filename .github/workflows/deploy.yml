@@ -1,0 +1,80 @@
+name: CI/CD Pipeline for Vue.js
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  build:
+    name: Build Vue.js and Create Docker Image And Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # Étape 1 : Checkout du code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Étape 2 : Installer Node.js et construire l'application
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18 # Utiliser Node.js 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Vue.js app
+        run: npm run build
+
+      # Étape 2.5 : Vérifier si dist est généré
+      - name: Check dist folder
+        run: ls -la dist
+
+      # Étape 2.6 : Sauvegarder dist comme artefact
+      - name: Save dist folder
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist
+          path: dist/
+
+      # Étape 3 : Connecter Docker
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Étape 4 : Récupérer dist pour construire l'image Docker
+      - name: Download dist artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: dist
+    
+
+      - name: Build Docker image
+        run: | 
+          ls
+          docker build -t badzim/codelands:dpr-client-latest -f docker/Dockerfile.prod .
+          docker tag badzim/codelands:dpr-client-latest badzim/codelands:dpr-client-v${{ github.run_number }}
+
+      # Étape 5 : Pousser l'image Docker vers Docker Hub
+      - name: Push Docker image
+        run: |
+          docker push badzim/codelands:dpr-client-latest
+          docker push badzim/codelands:dpr-client-v${{ github.run_number }}
+
+      # Étape 6 : Se connecter au serveur via SSH
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      
+      # Étape 7 : Exécuter le script de mise à jour sur le serveur
+      - name: Deploy to production
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.SERVER_LOGIN }}@${{ secrets.SERVER_IP }} "/root/codelands/dpr/client/update.sh"
